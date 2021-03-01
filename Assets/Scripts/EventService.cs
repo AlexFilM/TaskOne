@@ -55,18 +55,18 @@ public class EventService : MonoBehaviour
             dataStream.Write(byte1, 0, byte1.Length);
         }
 
-        string str;
         WebResponse response = request.GetResponse();
         using (Stream stream = response.GetResponseStream())
         {
             using (StreamReader reader = new StreamReader(stream))
             {
-                str = "200 OK";
-                Debug.Log(reader.ReadToEnd());
+                string str = "200 OK";
+                //Debug.Log(reader.ReadToEnd());
                 //Если запрос успешно прошёл то очищаем лист ивентов
                 if (str.Contains("200 OK"))
                 {
                     events.Clear();
+                    File.Delete("1.json");
                 }
             }
         }
