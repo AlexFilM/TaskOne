@@ -16,7 +16,7 @@ public class EventService : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating("TrackEvent",0,cooldownBeforeSend);
+        InvokeRepeating("TrackEvent", 0, cooldownBeforeSend);
     }
     public void AddEvent(Event newEvent)
     {
@@ -54,20 +54,23 @@ public class EventService : MonoBehaviour
         {
             dataStream.Write(byte1, 0, byte1.Length);
         }
-        
-        //Если запрос успешно прошёл то очищаем лист ивентов
 
-
-        //WebResponse response = request.GetResponse();
-        //using (Stream stream = response.GetResponseStream())
-        //{
-        //    using (StreamReader reader = new StreamReader(stream))
-        //    {
-        //        Debug.Log(reader.ReadToEnd());
-        //    }
-        //}
-        //response.Close();
-        //Debug.Log("Запрос выполнен...");
+        string str;
+        WebResponse response = request.GetResponse();
+        using (Stream stream = response.GetResponseStream())
+        {
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                str = "200 OK";
+                Debug.Log(reader.ReadToEnd());
+                //Если запрос успешно прошёл то очищаем лист ивентов
+                if (str.Contains("200 OK"))
+                {
+                    events.Clear();
+                }
+            }
+        }
+        response.Close();
     }
 
 }
