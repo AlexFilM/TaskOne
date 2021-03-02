@@ -11,31 +11,32 @@ public class EventService : MonoBehaviour
 {
 
     float cooldownBeforeSend = 10.0f;
+
+
     string serverURL = "file:///E:/events";
+
+
     List<Event> events = new List<Event>();
-
-    private void Start()
+    public void Start()
     {
-        InvokeRepeating("TrackEvent", 0, cooldownBeforeSend);
+        InvokeRepeating("SendEvents", 0, cooldownBeforeSend);
     }
-    public void AddEvent(Event newEvent)
+    // Add event to list
+    public void TrackEvent(string type, string data)
     {
-        events.Add(newEvent);
+        events.Add(new Event(type, data));
+        SendEvents();
     }
-    public void ShowEvents()
+    // Send To server
+    void SendEvents()
     {
-        foreach (Event ev in events)
-        {
-            Debug.Log(ev.type + ev.data);
-        }
-    }
-
-    public void TrackEvent()
-    {
+        //Добовляет блок events в конвертированный запрос, иначе он выглядел бы не как в таске
         Events ev = new Events();
         ev.events = events;
-
+        //
+        //convert to json
         DataContractJsonSerializer formatter = new DataContractJsonSerializer(typeof(Events));
+
         using (FileStream fs = new FileStream("1.json", FileMode.OpenOrCreate))
         {
             formatter.WriteObject(fs, ev);
@@ -44,6 +45,7 @@ public class EventService : MonoBehaviour
 
         Debug.Log(json);
 
+        //Запрос - ответ
         WebRequest request = WebRequest.Create(serverURL);
         request.Method = "POST";
         byte[] byte1 = System.Text.Encoding.UTF8.GetBytes(json);
@@ -60,9 +62,7 @@ public class EventService : MonoBehaviour
         {
             using (StreamReader reader = new StreamReader(stream))
             {
-                string str = "200 OK";
-                //Debug.Log(reader.ReadToEnd());
-                //Если запрос успешно прошёл то очищаем лист ивентов
+                string str = reader.ReadToEnd();
                 if (str.Contains("200 OK"))
                 {
                     events.Clear();
@@ -92,7 +92,7 @@ public class Event
     }
 }
 
-public class GameInfo
+public class GameInfo : MonoBehaviour
 {
     private int coinsCount = 0;
     private int currentLevel = 1;
@@ -100,10 +100,6 @@ public class GameInfo
 
     public delegate void EventHandler(string type, string data);
     public event EventHandler Notify;
-
-    public EventService events = new EventService();
-
-
     public GameInfo(int coins, int level, int points)
     {
         coinsCount = coins;
@@ -111,11 +107,13 @@ public class GameInfo
         beautyPoints = points;
         Notify += CreateEvent;
     }
+    //Send events 
     void CreateEvent(string type, string data)
     {
-        events.AddEvent(new Event(type, data));
-        Debug.Log($"Событие {type} данные {data}.");
+        GameObject.Find("Services").GetComponent<EventService>().TrackEvent(type, data);
+        Debug.Log("Send!");
     }
+    //Exemple methods
     public void IncreaseCoinsCount(int coins)
     {
         coinsCount += coins;
@@ -137,5 +135,5 @@ public class GameInfo
         beautyPoints += 1;
         Notify?.Invoke("TaskComplete", $"{beautyPoints}");
     }
+    //
 }
-

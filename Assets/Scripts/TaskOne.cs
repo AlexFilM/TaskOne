@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class TaskOne : MonoBehaviour
 {
-
-    // Start is called before the first frame update
     void Start()
     {
         GameInfo gameOne = new GameInfo(100, 1, 10);
@@ -14,22 +12,11 @@ public class TaskOne : MonoBehaviour
         gameOne.IncreaseCoinsCount(10);
         gameOne.IncreaseCoinsCount(10);
         gameOne.DecreaseCoinsCount(20);
-        gameOne.events.TrackEvent();
         gameOne.GetRewards();
         gameOne.NewLevelStart();
         gameOne.GetRewards();
         gameOne.GetRewards();
         gameOne.DecreaseCoinsCount(20);
         gameOne.NewLevelStart();
-        //gameOne.events.ShowEvents();
-        gameOne.events.TrackEvent();
-
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
