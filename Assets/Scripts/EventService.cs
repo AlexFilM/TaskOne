@@ -17,6 +17,10 @@ public class EventService : MonoBehaviour
 
 
     List<Event> events = new List<Event>();
+
+    //Для симуляции ответа сервера
+    int testresponse = 0;
+
     public void Start()
     {
         InvokeRepeating("SendEvents", 0, cooldownBeforeSend);
@@ -30,47 +34,60 @@ public class EventService : MonoBehaviour
     // Send To server
     void SendEvents()
     {
-        //Добовляет блок events в конвертированный запрос, иначе он выглядел бы не как в таске
-        Events ev = new Events();
-        ev.events = events;
-        //
-        //convert to json
-        DataContractJsonSerializer formatter = new DataContractJsonSerializer(typeof(Events));
-
-        using (FileStream fs = new FileStream("1.json", FileMode.OpenOrCreate))
+        if (events.Count != 0)
         {
-            formatter.WriteObject(fs, ev);
-        }
-        string json = File.ReadAllText("1.json");
 
-        Debug.Log(json);
+            //Добовляет блок events в конвертированный запрос, иначе он выглядел бы не как в таске
+            Events ev = new Events();
+            ev.events = events;
+            //
+            //convert to json
+            DataContractJsonSerializer formatter = new DataContractJsonSerializer(typeof(Events));
 
-        //Запрос - ответ
-        WebRequest request = WebRequest.Create(serverURL);
-        request.Method = "POST";
-        byte[] byte1 = System.Text.Encoding.UTF8.GetBytes(json);
-        request.ContentType = "application/x-www-form-urlencoded";
-        request.ContentLength = byte1.Length;
-
-        using (Stream dataStream = request.GetRequestStream())
-        {
-            dataStream.Write(byte1, 0, byte1.Length);
-        }
-
-        WebResponse response = request.GetResponse();
-        using (Stream stream = response.GetResponseStream())
-        {
-            using (StreamReader reader = new StreamReader(stream))
+            using (FileStream fs = new FileStream("1.json", FileMode.OpenOrCreate))
             {
-                string str = reader.ReadToEnd();
-                if (str.Contains("200 OK"))
+                formatter.WriteObject(fs, ev);
+            }
+            string json = File.ReadAllText("1.json");
+
+            Debug.Log(json);
+
+            //Запрос - ответ
+            WebRequest request = WebRequest.Create(serverURL);
+            request.Method = "POST";
+            byte[] byte1 = System.Text.Encoding.UTF8.GetBytes(json);
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = byte1.Length;
+
+            using (Stream dataStream = request.GetRequestStream())
+            {
+                dataStream.Write(byte1, 0, byte1.Length);
+            }
+
+            WebResponse response = request.GetResponse();
+            using (Stream stream = response.GetResponseStream())
+            {
+                using (StreamReader reader = new StreamReader(stream))
                 {
-                    events.Clear();
-                    File.Delete("1.json");
+                    string str = reader.ReadToEnd();
+                    testresponse++;
+                    if (str.Contains("200 OK"))
+                    {
+                        events.Clear();
+                        File.Delete("1.json");
+                    }
+                    //Симулируем что сервер отвечает верно через некоторое количество запросов
+                    if (testresponse == 4)
+                    {
+                        events.Clear();
+                        File.Delete("1.json");
+                        testresponse = 0;
+                    }
+
                 }
             }
+            response.Close();
         }
-        response.Close();
     }
 
 }
